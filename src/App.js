@@ -1,15 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import './App.css';
-// import CardList from "./components/card-list/card-list.component";
+import CardList from "./components/card-list/card-list.component";
 import SearchBox from "./components/search-box/search-box.component";
 
 const App = () => {
   // Initialize local state
   const [ searchField, setSearchField] = useState();
-  const [ monsters, setMonsters ] = useState();
+  const [ monsters, setMonsters ] = useState([]);
+  const [ filteredMonsters, setFilteredMonsters ] = useState(monsters);
 
-  console.log(searchField)
+  // use effect will only run if the values within the dependencies in the second array argument change
+  // If no dependencies are passed the function will only run once
+  // Set monsters on initial load
+  useEffect(() => {
+    fetch('https://jsonplaceholder.typicode.com/users')
+      .then((response) => response.json())
+      .then((users) => setMonsters(users))
+  }, []);
 
+  // Update monsters on change
+  useEffect(() => {
+    const newFilteredMonsters = monsters.filter((monster) => {
+      return monster.name.toLocaleLowerCase().includes(searchField)
+    });
+
+    setFilteredMonsters(newFilteredMonsters)
+  }, [monsters, searchField]);
+
+
+  // Event handler
   const onSearchChange = (event) => {
     // Get new Value
     const searchFieldString = event.target.value.toLocaleLowerCase()
@@ -20,9 +39,12 @@ const App = () => {
 
   // HTML to render
   return (
-    <SearchBox
-      onChangeHandler = { onSearchChange }
-    />
+    <div>
+      <SearchBox
+        onChangeHandler = { onSearchChange }
+      />
+      <CardList monsters={filteredMonsters}/>
+    </div>
   )
 }
 
